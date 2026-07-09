@@ -3,14 +3,21 @@
 // import{DB_NAME} from "./constants";
 import dotenv from "dotenv"
 import connectDB from "./db/index.js";  //ye file me agr js na likhta to bhi chal jata lekin kabhi kabhi error de deta h islie extension bhi likh dena
-
+import app from "./app.js"
 dotenv.config({
     path: './env'
 })
 // /*ab ye jo import krke le aye dot env ye ese ata nhi h , islie hmne iska experimental version use kia , package.json me jake dev wale me hmne iska experimental feature download kr lia */
 
 
-connectDB()
+connectDB()                    //hmne connectDB ko call kiya taki database connect ho jaye , ye function async h islie hmne then catch use kiya taki agar connection ho jaye to app listen ho jaye aur agar connection nhi ho paya to error dikha de.(bcz async hmesha ek promise return krta h)
+.then(() => {
+    app.listen(process.env.PORT || 9000, () => {
+        console.log(`app is listening on the port ${process.env.PORT}`)});
+})
+.catch((error) => {
+    console.log("Connection failed !!!", error);
+})  
 
 //(ye h first approch database connect krne ki)
 

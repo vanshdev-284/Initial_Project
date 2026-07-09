@@ -1,0 +1,12 @@
+/* Lecture-9 */
+
+1) hum download krenge cookie parser and CORS ye cors hme resource sharing me help krta h
+2) app.use hm jab use krte jab hme koi middleware setting ya koi configuation setting krte 
+3)
+
+
+
+
+/*Lecture-12*/
+
+pointer me agr vec.end lagaoge to wo koi bhi random address return kr dega.
