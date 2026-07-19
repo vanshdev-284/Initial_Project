@@ -17,7 +17,7 @@ const userSchema = new Schema({
         lowercase: true,
         trim: true
     },
-    fullname : {
+    fullName : {
         type : String,
         required : true,
         lowercase: true,
@@ -32,8 +32,8 @@ const userSchema = new Schema({
         type: String
     },
     watchHistory: {
-        type : Schema.Types.ObjectId,
-        ref = "Video"
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "Video"
     },
     password: {
         type: String,
@@ -44,15 +44,15 @@ const userSchema = new Schema({
     }
 },{timeStamp: true})
 
-userSchema.pre("save", async function(next){
-    if(!this.isModified("password")) return next();          //ye if islie use kra,bcz jab password change ho tabhi ye work kre wrna kuch bhi change kro ye work krne lgta ,aur isModified ek function h aur isme parameter string bnakar hi dete h
-    this.password = bcrypt.hash(this.password, 10)
-    next()
+userSchema.pre("save", async function(){
+    if(!this.isModified("password")) return ;          //ye if islie use kra,bcz jab password change ho tabhi ye work kre wrna kuch bhi change kro ye work krne lgta ,aur isModified ek function h aur isme parameter string bnakar hi dete h
+    this.password = await bcrypt.hash(this.password, 10)
+    
 })                   //ye pre hook hme data enter krne se phele hi kuch kaam krana ho to usnme use hota h
 
 //middleware use kr rhe h to next to ayega hi,ye flag kaam ko hone k baad age pass kr deta h
 
-userSceham.methods.isPasswordCorrect = async function(password){
+userSchema.methods.isPasswordCorrect = async function(password){
     return await bcrypt.compare(password , this.password)
 } ;    //mongoose hme feature deta h uske ander methods inject krne ka , bcrypt ka feature hota h compare krne ka to use ham use kr lenge
 
@@ -79,6 +79,7 @@ userSchema.methods.generateRefreshToken = function(){
     }
     )
 };
-export const User = mongoose.model("User", userSchema)
+const User = mongoose.model("User", userSchema);
+export default User
 
 //jwt is knon as bearer token like ye ek chabi h jiske pass hui use ham data de denge

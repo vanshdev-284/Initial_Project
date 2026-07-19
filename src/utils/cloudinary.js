@@ -1,11 +1,11 @@
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";  //ye file system k liye h like hme file read krni h ya write or ye node k sath hi download ho jata h
 
     // Configuration
     cloudinary.config({ 
-        cloud_name: process.env.CLOUDINARY-CLOUD-NAME, 
-        api_key: process.env.CLOUDINARY-API_KEY, 
-        api_secret: process.env.CLOUDINARY-API_SECRET 
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
+        api_key: process.env.CLOUDINARY_API_KEY, 
+        api_secret: process.env.CLOUDINARY_API_SECRET 
     });
 
 const uploadCloudinary = async (localFilePath) => {
@@ -16,7 +16,8 @@ const uploadCloudinary = async (localFilePath) => {
             resource_type : 'auto'
         })
         //file has been uploaded successfully
-        console.log("file uploaded successfully", response.url)
+        //console.log("file uploaded successfully", response.url)
+        fs.unlinkSync(localFilePath)
         return response;
     }
     catch(error){
@@ -25,6 +26,6 @@ const uploadCloudinary = async (localFilePath) => {
     }
 }
 
-export {uploadCloudinary}
+export default uploadCloudinary
     
     
