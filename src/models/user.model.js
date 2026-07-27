@@ -44,7 +44,7 @@ const userSchema = new Schema({
     }
 },{timeStamp: true})
 
-userSchema.pre("save", async function(){
+userSchema.pre("save", async function(){   //is function k ander next bhi likhte h bcz middleware h to next ana hi chahiye ,filhal mene error thik krne k lie hta dia tha
     if(!this.isModified("password")) return ;          //ye if islie use kra,bcz jab password change ho tabhi ye work kre wrna kuch bhi change kro ye work krne lgta ,aur isModified ek function h aur isme parameter string bnakar hi dete h
     this.password = await bcrypt.hash(this.password, 10)
     

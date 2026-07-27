@@ -4,6 +4,8 @@ import {ApiError} from "../utils/ApiError.js"
 import User from "../models/user.model.js"
 import uploadCloudinary from "../utils/cloudinary.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
+
+
 const registerUser = asyncHandler(async(req,res) => {   
     //ye syntax 1000 jagah repeat hona h to learn it
     // res.status(200).json({
@@ -51,7 +53,7 @@ const registerUser = asyncHandler(async(req,res) => {
     const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
     if(!avatarLocalPath){
-        throw new ApiError(400, "Avatar file is required")
+        throw new ApiError(400, "Avatar file path is required")
     }
     const avatar = await uploadCloudinary(avatarLocalPath)
     const coverImage = await uploadCloudinary(coverImageLocalPath)
@@ -81,6 +83,39 @@ const registerUser = asyncHandler(async(req,res) => {
         new ApiResponse(200, createdUser, "User registered sucessfully")
     )
 
+})
+
+const loginUser = asyncHandler(async(req,res) => {
+    // req body -> data use Laye,
+    // username or email 
+    // check user
+    // get password
+    // password check
+    // acces and refresh token generate
+    // send cookie
+
+    const{email , username, password} = req.body
+
+    if(!username || !email){
+        throw new ApiError(400,"username or email is required")
+    }
+
+    const user = await User.findOne({
+        $or: [{username , email}]
+    })
+
+    if (!user){
+        throw new ApiError(404,"User with given username or email is invalid")
+    }
+
+    //yaha pr user use krenge naki User bcz User to mdb me h jispe hm mdb k fuctions lga skte h elin user pe to hm sirf whi lga skte h jo hmne bnaye h
+
+    //to check password
+
+    const isPasswordValid = await user.isPasswordCorrect(password)
+    if(!isPasswordValid){
+        throw new ApiError(404,"password is incorrect")
+    }
 })
 
 export {registerUser}

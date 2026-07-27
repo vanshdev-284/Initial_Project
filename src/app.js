@@ -11,7 +11,7 @@ app.use(cors({
 
 app.use(express.json({limit: "100kb"}))     //ye limit islie lagayi h taki agar user ne jyada data bheja to server crash na ho jaye , ye security ke liye bhi h.
 
-app.use(express.urlencoded({extended: true, limit:"100kb"}))   //ye islie use kia bcz jab hmm url use krte h to usme jo + ya %20 a jata h use htane k liye
+app.use(express.urlencoded({extended: true, limit:"100kb"}))   //ye islie use kia bcz jab hmm url use krte h to usme jo + ya %20 a jata h use htane k liye, extended ka use bs object k ander object de paye islie krte h
 
 app.use(express.static("public"))     //ye koi image a gyi ya pdf a gyi to use store krne k liye h , public name ki jo file banayi h hmne usme store ho jayega
 

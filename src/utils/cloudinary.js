@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";  //ye file system k liye h like hme file read krni h ya write or ye node k sath hi download ho jata h
+import fs from "fs";  //ye file system k liye h like hme file read krni h ya write and other properties or +ye node k sath hi download ho jata h
 
     // Configuration
     cloudinary.config({ 
