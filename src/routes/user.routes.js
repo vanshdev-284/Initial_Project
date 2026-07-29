@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser } from "../controllers/user.controller.js";
+import { registerUser ,loginUser , logOutUser} from "../controllers/user.controller.js";
 import {upload} from "../middlewares/multer.middleware.js";
 const router = Router();
 
@@ -15,6 +15,12 @@ router.route("/register").post(
         }
     ]),
     registerUser);
+
+router.route("/login").post(loginUser);
+
+//secured routes for logging out
+
+router.route("/logOut").post(verifyJWT , logOutUser);  //yaha hmne 2 method call kiye to router confuse na ho jaye ki konsa phele use kru islie verify jwt me hmne next() use kia tha middleware me
 
 export default router;
 
