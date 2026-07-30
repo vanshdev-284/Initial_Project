@@ -1,4 +1,3 @@
-
 import {asyncHandler} from "../utils/asyncHandler.js"
 import {ApiError} from "../utils/ApiError.js"
 import User from "../models/user.model.js"
@@ -9,14 +8,19 @@ const generateAccessAndRefreshToken = async(userId) => {
     try{
         const user = await User.findById(userId)
         const accessToken = user.generateAccessToken()
-        const refreshToken = user.genrateRefreshToken()
+        const refreshToken = user.generateRefreshToken()
+        console.log(userId);
+        
 
         user.refreshToken = refreshToken          //ye hmne user k refresh token wale db me store kr diye
         await user.save({validateBeforeSave: false})    // ye hmne islie likha bcz hm nhi chahte ki wo koi error show kre if hmne koi field khali chod di to
         return {accessToken , refreshToken}        //yaha jo me cookies access kr pa rha hu bcz mene ./apps me app.use(cookieparser()  use kia h)
 
     }catch(error){
-        throw new ApiError(500,"Something Went wrong while generating token.")
+        //throw new ApiError(500,"Something Went wrong while generating token.")
+        console.log(error);      // or console.error(error)
+        throw new ApiError(420, error.message);
+
     }
 }
 const registerUser = asyncHandler(async(req,res) => {   
@@ -106,15 +110,16 @@ const loginUser = asyncHandler(async(req,res) => {
     // password check
     // acces and refresh token generate
     // send cookie
-
-    const{email , username, password} = req.body
-
-    if(!username || !email){
+    
+    
+    const{email , username, password} = req.body;
+    console.log(req.body.username);
+    if(!username && !email){
         throw new ApiError(400,"username or email is required")
     }
 
     const user = await User.findOne({
-        $or: [{username , email}]
+        $or: [{username}, {email}]
     })
 
     if (!user){
@@ -129,7 +134,7 @@ const loginUser = asyncHandler(async(req,res) => {
     if(!isPasswordValid){
         throw new ApiError(404,"password is incorrect")
     }
-})
+
 
     const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._Id)
     const loginInUser = await User.findById(user._Id).select("-password -refreshToken")   //ye wo cheeze h jo ham user ko nhi dena chahte
@@ -145,7 +150,7 @@ const loginUser = asyncHandler(async(req,res) => {
             "User successfully logged in !!"
         )
     )
-
+})
     const logOutUser = asyncHandler(async(req,res) => {
         await User.findByIdAndUpdate(
             req.user._Id,{
