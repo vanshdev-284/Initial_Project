@@ -1,6 +1,10 @@
 import mongoose , {Schema} from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import dotenv from "dotenv";
+dotenv.config({
+    path: './.env'
+})
 const userSchema = new Schema({
     username : {
         type : String,
@@ -53,7 +57,7 @@ userSchema.pre("save", async function(){   //is function k ander next bhi likhte
 //middleware use kr rhe h to next to ayega hi,ye flag kaam ko hone k baad age pass kr deta h
 
 userSchema.methods.isPasswordCorrect = async function(password){
-    return await bcrypt.compare(password , this.password)
+    return await bcrypt.compare(password,this.password)
 } ;    //mongoose hme feature deta h uske ander methods inject krne ka , bcrypt ka feature hota h compare krne ka to use ham use kr lenge
 
 userSchema.methods.generateAccessToken = function(){
@@ -81,5 +85,7 @@ userSchema.methods.generateRefreshToken = function(){
 };
 const User = mongoose.model("User", userSchema);
 export default User
+
+console.log(process.env.REFRESH_TOKEN_SECRET)
 
 //jwt is knon as bearer token like ye ek chabi h jiske pass hui use ham data de denge

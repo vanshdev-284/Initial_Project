@@ -11,7 +11,7 @@ const generateAccessAndRefreshToken = async(userId) => {
         const refreshToken = user.generateRefreshToken()
         console.log(userId);
         
-
+        user.accessToken = accessToken
         user.refreshToken = refreshToken          //ye hmne user k refresh token wale db me store kr diye
         await user.save({validateBeforeSave: false})    // ye hmne islie likha bcz hm nhi chahte ki wo koi error show kre if hmne koi field khali chod di to
         return {accessToken , refreshToken}        //yaha jo me cookies access kr pa rha hu bcz mene ./apps me app.use(cookieparser()  use kia h)
@@ -131,6 +131,8 @@ const loginUser = asyncHandler(async(req,res) => {
     //to check password
 
     const isPasswordValid = await user.isPasswordCorrect(password)
+    // console.log(isPasswordValid);
+    
     if(!isPasswordValid){
         throw new ApiError(404,"password is incorrect")
     }
