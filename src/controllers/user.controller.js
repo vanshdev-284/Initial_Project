@@ -4,24 +4,32 @@ import User from "../models/user.model.js"
 import uploadCloudinary from "../utils/cloudinary.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 
+
 const generateAccessAndRefreshToken = async(userId) => {
     try{
+        //console.log("at try")
         const user = await User.findById(userId)
         const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()
         console.log(userId);
+        console.log(accessToken) 
+        console.log(refreshToken)
         
         user.accessToken = accessToken
         user.refreshToken = refreshToken          //ye hmne user k refresh token wale db me store kr diye
         await user.save({validateBeforeSave: false})    // ye hmne islie likha bcz hm nhi chahte ki wo koi error show kre if hmne koi field khali chod di to
+        
         return {accessToken , refreshToken}        //yaha jo me cookies access kr pa rha hu bcz mene ./apps me app.use(cookieparser()  use kia h)
 
     }catch(error){
         //throw new ApiError(500,"Something Went wrong while generating token.")
-        console.log(error);      // or console.error(error)
+        console.log("at catch")
+        console.log(error);       // or console.error(error)
         throw new ApiError(420, error.message);
 
     }
+    console.log(user.accessToken);
+    console.log(user.refreshToken);
 }
 const registerUser = asyncHandler(async(req,res) => {   
     //ye syntax 1000 jagah repeat hona h to learn it
@@ -48,6 +56,8 @@ const registerUser = asyncHandler(async(req,res) => {
     // // if(fullName === ""){
     // //     throw new ApiError(400, "full name is required")
     // // }
+    console.log(user._id);
+    
 
     if(
         [fullName , email , username , password].some((field) => field?.trim() === "")
@@ -113,7 +123,7 @@ const loginUser = asyncHandler(async(req,res) => {
     
     
     const{email , username, password} = req.body;
-    console.log(req.body.username);
+    //console.log(req.body.username);
     if(!username && !email){
         throw new ApiError(400,"username or email is required")
     }
@@ -137,9 +147,10 @@ const loginUser = asyncHandler(async(req,res) => {
         throw new ApiError(404,"password is incorrect")
     }
 
-
-    const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._Id)
-    const loginInUser = await User.findById(user._Id).select("-password -refreshToken")   //ye wo cheeze h jo ham user ko nhi dena chahte
+    // console.log(user)
+    // console.log(String(user._id))
+    const {accessToken, refreshToken} = await generateAccessAndRefreshToken(String(user._id))
+    const loginUser = await User.findById(user._id).select("-password -refreshToken")   //ye wo cheeze h jo ham user ko nhi dena chahte
 
     const options = {
         httpOnly: true,       //ye hmne islie use kia bcz phele koi bhi ise change ya modify kr skta tha lekin isse sirf control server k pass chala jata h 
@@ -148,14 +159,14 @@ const loginUser = asyncHandler(async(req,res) => {
 
     return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(
         new ApiResponse(200,
-            {user: loggedInUser, accessToken, refreshToken},   //yaha pe hmne ye tokens dubara islie bheje h bcz kya pta user baad me unhe apni tarah se save krna chahta ho kisi variable me , ye ek acchi practice h
+            {user: loginUser, accessToken, refreshToken},   //yaha pe hmne ye tokens dubara islie bheje h bcz kya pta user baad me unhe apni tarah se save krna chahta ho kisi variable me , ye ek acchi practice h
             "User successfully logged in !!"
         )
     )
 })
     const logOutUser = asyncHandler(async(req,res) => {
         await User.findByIdAndUpdate(
-            req.user._Id,{
+            req.user._id,{
                 $set:{     //ye mdb ka operator h jo values change krta h
                     refreshToken : undefined
                 }

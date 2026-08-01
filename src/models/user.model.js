@@ -61,11 +61,11 @@ userSchema.methods.isPasswordCorrect = async function(password){
 } ;    //mongoose hme feature deta h uske ander methods inject krne ka , bcrypt ka feature hota h compare krne ka to use ham use kr lenge
 
 userSchema.methods.generateAccessToken = function(){
-    jwt.sign({
+    return jwt.sign({
         _id : this.id,
         email: this.email,
         username: this.username,
-        fullname: this.fullname
+        fullName: this.fullName
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
@@ -74,7 +74,7 @@ userSchema.methods.generateAccessToken = function(){
     )
 };
 userSchema.methods.generateRefreshToken = function(){
-    jwt.sign({
+    return jwt.sign({
         _id : this.id
     },
     process.env.REFRESH_TOKEN_SECRET,
@@ -86,6 +86,5 @@ userSchema.methods.generateRefreshToken = function(){
 const User = mongoose.model("User", userSchema);
 export default User
 
-console.log(process.env.REFRESH_TOKEN_SECRET)
 
 //jwt is knon as bearer token like ye ek chabi h jiske pass hui use ham data de denge
