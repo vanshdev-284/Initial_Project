@@ -234,4 +234,94 @@ const loginUser = asyncHandler(async(req,res) => {
         }
     })
 
-export {registerUser,loginUser,logOutUser,refreshTokenAgain}
+    const changeCurrentPassword = asyncHandler(async(req,res) => {
+        const {oldPassword , newPassword} = req.body
+        const user2 = await User.findById(req.user?._id)
+        const isEnteredPassTrue = await user2.isPasswordCorrect(oldPassword)
+
+        if(!isEnteredPassTrue){
+            throw new ApiError(400,"Invalid old password")
+        }
+        user.password = newPassword
+        await user.save({validateBeforeSave : false})
+
+        return res
+        .status(200)
+        .json(new ApiResponse(200, {}, "Password changed sucessfully"))
+    })
+
+    const getCurrentUser = asyncHandler(async(req,res) => {
+        return res.status(200)
+        .json(200,req.user,"Current User fetched sucessfully.")
+    })
+
+    const updateAccountDetail  = asyncHandler(async(req,res) => {
+        const{fullName,email } = req.body  //agr user koi particular info save krna chahta h to un sabka alag alag controller likho jiski wajah se baar baar text data nhi jata to congestion kam hota h
+        if(!fullName || !email){
+            throw new ApiError(400,"All fields are required")
+        }
+
+        User.findByIdAndUpdate(req.user?._id,{$set: {fullName,email: email}},{new:true}).select("-password")
+
+        return res.status(200).json(new ApiResponse(200,user,"Account details updated successfully"))
+    })
+
+const updateAvatar = asyncHandler(async(req,res) => {
+    const changeAvatarLocalPath = req.file?.path    //yaha pe files ki jagah file likha h bcz yaha hm ek hi file change krwayenge lekin yaha hme update krne k liye to ek hi chahiye
+
+    if(!changeAvatarLocalPath){
+        throw new ApiError(400,"Avatar file is missing")
+    }
+
+    const updAva = await uploadCloudinary(changeAvatarLocalPath)
+
+    if(!updAva.url){
+        throw new ApiError(400,"Error while uploading on avatar")
+    }
+
+    const user3 = await User.findByIdAndUpdate(
+        req.user?._id,{$set:{
+            avatar = updAva.url
+        }
+
+        },
+        {new: true}
+    ).select("-password")
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, user3, "Avatar updated successfully")
+    )
+})
+
+const updateCoverImage = asyncHandler(async(req,res) => {
+    const changeCoverImageLocalPath = req.file?.path    //yaha pe files ki jagah file likha h bcz yaha hm ek hi file change krwayenge lekin yaha hme update krne k liye to ek hi chahiye
+
+    if(!changeCoverImageLocalPath){
+        throw new ApiError(400,"Avatar file is missing")
+    }
+
+    const updCI = await uploadCloudinary(changeCoverImageLocalPath)
+
+    if(!updCI.url){
+        throw new ApiError(400,"Error while uploading on cover Image")
+    }
+
+    const user4 = await User.findByIdAndUpdate(
+        req.user?._id,{$set:{
+            coverImage = updCI.url
+        }
+
+        },
+        {new: true}
+    ).select("-password")
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, user4, "Cover image updated successfully")
+    )
+})
+
+export {registerUser,loginUser,logOutUser,refreshTokenAgain,changeCurrentPassword,getCurrentUser,updateAccountDetail,updateCoverImage,updateAvatar}
