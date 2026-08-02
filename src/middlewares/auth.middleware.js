@@ -12,9 +12,8 @@ const verifyJWT = asyncHandler(async(req,res,next) => {
         console.log(token);
         
         
-       
         if(!token){
-            throw new ApiError("Unauthorized access")
+            throw new ApiError(401,"Unauthorized access")
         }
         console.log("vardaab ki gand me piyush ka lund 8 inch ka")
         const decoded = await jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)    //yaha pr access token ko verify krenge means getting decoded info

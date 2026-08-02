@@ -56,7 +56,7 @@ const registerUser = asyncHandler(async(req,res) => {
     // // if(fullName === ""){
     // //     throw new ApiError(400, "full name is required")
     // // }
-    console.log(user._id);
+    
     
 
     if(
@@ -157,12 +157,15 @@ const loginUser = asyncHandler(async(req,res) => {
         secure: true
     }
 
-    return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(
-        new ApiResponse(200,
-            {user: loginUser, accessToken, refreshToken},   //yaha pe hmne ye tokens dubara islie bheje h bcz kya pta user baad me unhe apni tarah se save krna chahta ho kisi variable me , ye ek acchi practice h
-            "User successfully logged in !!"
+    return res.status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponse(200,
+                {user: loginUser, accessToken, refreshToken},   //yaha pe hmne ye tokens dubara islie bheje h bcz kya pta user baad me unhe apni tarah se save krna chahta ho kisi variable me , ye ek acchi practice h
+                "User successfully logged in !!"
+            )
         )
-    )
 })
     const logOutUser = asyncHandler(async(req,res) => {
         await User.findByIdAndUpdate(
@@ -181,12 +184,54 @@ const loginUser = asyncHandler(async(req,res) => {
         secure: true
         }
 
-        return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(
-            new ApiResponse(200,
-                   //yaha pe hmne ye tokens dubara islie bheje h bcz kya pta user baad me unhe apni tarah se save krna chahta ho kisi variable me , ye ek acchi practice h
-                "User successfully logged out !!"
-            )
+        return res.status(200)
+            .clearCookie("accessToken", options)
+            .clearCookie("refreshToken", options)
+            .json(
+                new ApiResponse(200,{},
+                    //yaha pe hmne ye tokens dubara islie bheje h bcz kya pta user baad me unhe apni tarah se save krna chahta ho kisi variable me , ye ek acchi practice h
+                    "User successfully logged out !!"
+                )
         )
     })
 
-export {registerUser,loginUser,logOutUser}
+    const refreshTokenAgain = asyncHandler(async(req,res)=>{
+        const incomingRefreshToken = req.body.refreshToken || req.cookies.refreshToken
+
+        if(!incomingRefreshToken){
+            throw new ApiError(401,"Unauthorized Access")
+        }
+
+        try {
+            const decodedToken = JsonWebTokenError.verify(incomingRefreshToken ,process.env.REFRESH_TOKEN_SECRET )
+            const user1 = await User.findById(decodedToken?._id)
+
+            if(!user1){
+                throw new ApiError(401,"Invalid Access Token")
+            }
+
+            if(incomingRefreshToken !== user?.refreshToken){
+                throw new ApiError(401,"Refresh token is expired or used")
+            }
+            const options = {
+                httpOnly:true,
+                secure:true
+            }
+            const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
+    
+            return res
+            .status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", newRefreshToken, options)
+            .json(
+                new ApiResponse(
+                    200, 
+                    {accessToken, refreshToken: newRefreshToken},
+                    "Access token refreshed"
+                )
+    )} catch (error) {
+            throw new ApiError(401,"Invalid Access Token" || error?.message)
+        }
+    })
+
+export {registerUser,loginUser,logOutUser,refreshTokenAgain}
