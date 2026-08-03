@@ -1,7 +1,7 @@
 import {asyncHandler} from "../utils/asyncHandler.js"
 import {ApiError} from "../utils/ApiError.js"
 import User from "../models/user.model.js"
-import uploadCloudinary from "../utils/cloudinary.js"
+import uploadCloudinary, { removePre } from "../utils/cloudinary.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 
 
@@ -77,14 +77,19 @@ const registerUser = asyncHandler(async(req,res) => {
     // //Express hme body ka access deta h lekin hmne multer me jo upload middleware bnaya h wo hme file ka bhi access deta h to usse hm image bhi la skte h
 
     const avatarLocalPath = req.files?.avatar[0]?.path;   //ye hme file ka path de dega jo multer ne upload kia h,ye 0 ka mtlb h first property
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    //const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    let coverImageLocalPath;
+
+    if(req.files && Array.isArray(req.files.coverImage)&& req.files.coverImage.length > 0){
+        const coverImageLocalPath = req.files.coverImage[0].path;
+    }
 
     if(!avatarLocalPath){
         throw new ApiError(400, "Avatar file path is required")
     }
     const avatar = await uploadCloudinary(avatarLocalPath)
     const coverImage = await uploadCloudinary(coverImageLocalPath)
-
+    
     if(!avatar){
         throw new ApiError(400, "Avatar file is required")
     }
@@ -267,7 +272,7 @@ const loginUser = asyncHandler(async(req,res) => {
     })
 
 const updateAvatar = asyncHandler(async(req,res) => {
-    const changeAvatarLocalPath = req.file?.path    //yaha pe files ki jagah file likha h bcz yaha hm ek hi file change krwayenge lekin yaha hme update krne k liye to ek hi chahiye
+    const changeAvatarLocalPath = req.file?.path;
 
     if(!changeAvatarLocalPath){
         throw new ApiError(400,"Avatar file is missing")
@@ -275,18 +280,21 @@ const updateAvatar = asyncHandler(async(req,res) => {
 
     const updAva = await uploadCloudinary(changeAvatarLocalPath)
 
-    if(!updAva.url){
+    if(!updAva?.url){
         throw new ApiError(400,"Error while uploading on avatar")
     }
 
     const user3 = await User.findByIdAndUpdate(
         req.user?._id,{$set:{
-            avatar = updAva.url
-        }
-
-        },
+            avatar : updAva.url
+        }},
         {new: true}
     ).select("-password")
+
+    const previousAvatar = req.user?.avatar;
+    if(previousAvatar){
+        await removePre(previousAvatar);
+    }
 
     return res
     .status(200)
@@ -296,7 +304,7 @@ const updateAvatar = asyncHandler(async(req,res) => {
 })
 
 const updateCoverImage = asyncHandler(async(req,res) => {
-    const changeCoverImageLocalPath = req.file?.path    //yaha pe files ki jagah file likha h bcz yaha hm ek hi file change krwayenge lekin yaha hme update krne k liye to ek hi chahiye
+    const changeCoverImageLocalPath = req.file?.path;
 
     if(!changeCoverImageLocalPath){
         throw new ApiError(400,"Avatar file is missing")
@@ -304,18 +312,23 @@ const updateCoverImage = asyncHandler(async(req,res) => {
 
     const updCI = await uploadCloudinary(changeCoverImageLocalPath)
 
-    if(!updCI.url){
+    if(!updCI?.url){
         throw new ApiError(400,"Error while uploading on cover Image")
     }
 
     const user4 = await User.findByIdAndUpdate(
         req.user?._id,{$set:{
-            coverImage = updCI.url
+            coverImage : updCI.url
         }
 
         },
         {new: true}
     ).select("-password")
+
+    const previousCoverImage = req.user?.coverImage;
+    if(previousCoverImage){
+        await removePre(previousCoverImage);
+    }
 
     return res
     .status(200)
@@ -323,5 +336,53 @@ const updateCoverImage = asyncHandler(async(req,res) => {
         new ApiResponse(200, user4, "Cover image updated successfully")
     )
 })
+const getUserChannelProfile = asyncHandler(async(req,res) => {
+    if (!username?.trim()) {
+        throw new ApiError(400, "username is missing")
+    }
 
-export {registerUser,loginUser,logOutUser,refreshTokenAgain,changeCurrentPassword,getCurrentUser,updateAccountDetail,updateCoverImage,updateAvatar}
+    //aggregate([{},{}]) ese curly braces me ham kitni bhi pipelines add kr skte h
+    const channel = await User.aggregate([{
+        $match: {
+            username: username?.toLowerCase()
+        }
+        },
+        {
+            $lookup: {
+                from:"subs",
+                localField:"_id",
+                foriegnField: "channel",
+                as: "subscribers"
+            }
+        },
+        {
+            $lookup: {
+                from:"subs",
+                localField:"_id",
+                foriegnField: "subscriber",
+                as: "subscribedto"
+            }
+        },
+        {
+            $addFields: {
+                subscribersCount: {
+                    $size: "$subscribers"   //yaha subscriber me $islie use kia bcz ab ye bhi ek field bn chuka h
+                },
+                channelsSubscribedToCount: {
+                    $size: "$subscribedTo"
+                }
+            }
+        }
+    ]) 
+})
+
+export {registerUser,
+    loginUser,
+    logOutUser,
+    refreshTokenAgain,
+    changeCurrentPassword,
+    getCurrentUser,
+    updateAccountDetail,
+    updateCoverImage,
+    updateAvatar,
+    getUserChannelProfile}

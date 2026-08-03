@@ -1,5 +1,14 @@
 import { Router } from "express";
-import { registerUser ,loginUser , logOutUser,refreshTokenAgain} from "../controllers/user.controller.js";
+import { registerUser,
+    loginUser,
+    logOutUser,
+    refreshTokenAgain,
+    changeCurrentPassword,
+    getCurrentUser,
+    updateAccountDetail,
+    updateCoverImage,
+    updateAvatar,
+    getUserChannelProfile} from "../controllers/user.controller.js";
 import {upload} from "../middlewares/multer.middleware.js";
 import {verifyJWT} from "../middlewares/auth.middleware.js"
 const router = Router();
@@ -23,6 +32,8 @@ router.route("/login").post(loginUser);
 
 router.route("/logOut").post(verifyJWT , logOutUser);  //yaha hmne 2 method call kiye to router confuse na ho jaye ki konsa phele use kru islie verify jwt me hmne next() use kia tha middleware me
 router.route('/refresh-token').post(refreshTokenAgain);
+router.route("/updateAvatar").post(verifyJWT, upload.single("avatar"), updateAvatar);
+router.route("/updateCover").post(verifyJWT, upload.single("coverImage"), updateCoverImage);
 export default router;
 
 //yaha app.js se control isme aya ye fir yaha se hme register method call ho jayega
