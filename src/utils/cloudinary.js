@@ -26,6 +26,17 @@ const uploadCloudinary = async (localFilePath) => {
     }
 }
 
+const removePre = async(previousImage) => {
+    try {
+        const removed = await cloudinary.v2.uploader.destroy(previousImage, {resource_type: 'auto'}).then(console.log("Image updated"));
+        return removed;
+    } catch (error) {
+        console.log("Previous Image is not removed from the server.");
+        return null;
+    }
+}
+
+export { removePre };
 export default uploadCloudinary
     
     
