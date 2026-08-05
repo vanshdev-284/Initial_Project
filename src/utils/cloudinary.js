@@ -24,11 +24,14 @@ const uploadCloudinary = async (localFilePath) => {
         fs.unlinkSync(localFilePath)  //remove the locally saved temporary file as the uploadd operation got failed
         return null;
     }
-}
+} 
 
-const removePre = async(previousImage) => {
+const removePre = async(old_image_public_id) => {
     try {
-        const removed = await cloudinary.v2.uploader.destroy(previousImage, {resource_type: 'auto'}).then(console.log("Image updated"));
+        
+        const removed = await cloudinary.v2.uploader.destroy(old_image_public_id, {resource_type: 'auto'});
+        console.log(removed)
+        
         return removed;
     } catch (error) {
         console.log("Previous Image is not removed from the server.");
