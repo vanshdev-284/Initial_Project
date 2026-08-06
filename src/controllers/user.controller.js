@@ -184,8 +184,8 @@ const loginUser = asyncHandler(async(req,res) => {
 const logOutUser = asyncHandler(async(req,res) => {
     await User.findByIdAndUpdate(
         req.user._id,{
-            $set:{     //ye mdb ka operator h jo values change krta h
-                refreshToken : undefined
+            $unset:{     //ye mdb ka operator h jo values change krta h
+                refreshToken : 1 //this removes the field from the document
             }
         },
         {
