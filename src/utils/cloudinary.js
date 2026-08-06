@@ -28,13 +28,16 @@ const uploadCloudinary = async (localFilePath) => {
 
 const removePre = async(old_image_public_id) => {
     try {
-        
-        const removed = await cloudinary.v2.uploader.destroy(old_image_public_id, {resource_type: 'auto'});
-        console.log(removed)
-        
+        if (!old_image_public_id) {
+            console.log("No public_id provided for previous image removal.");
+            return null;
+        }
+
+        const removed = await cloudinary.uploader.destroy(old_image_public_id, {resource_type: 'image'});
+        console.log(removed);
         return removed;
     } catch (error) {
-        console.log("Previous Image is not removed from the server.");
+        console.error("Previous Image is not removed from the server.", error);
         return null;
     }
 }

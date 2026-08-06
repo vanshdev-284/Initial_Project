@@ -326,7 +326,7 @@ const updateCoverImage = asyncHandler(async(req,res) => {
 
     const oldUser = await User.findById(req.user._id)
     const changed = await User.findByIdAndUpdate(req.user?._id,{
-        $set: {avatar: {url: updCI.url ,
+        $set: {coverImage: {url: updCI.url ,
             public_id : updCI.public_id 
         }}
     },
@@ -347,7 +347,7 @@ const getUserChannelProfile = asyncHandler(async(req,res) => {
     }
 
     //aggregate([{},{}]) ese curly braces me ham kitni bhi pipelines add kr skte h
-    const channel = await User.aggregate([{
+    const channel = await User.aggregate([{ 
         $match: {
             username: username?.toLowerCase()
         }
@@ -375,13 +375,44 @@ const getUserChannelProfile = asyncHandler(async(req,res) => {
                 },
                 channelsSubscribedToCount: {
                     $size: "$subscribedTo"
+                },
+                isSubscribed: {
+                    $cond: {
+                        if:{$in: [req.user?._id , "$subscribers.subscriber"]},
+                        then:true,
+                        else:false
+                    }    //in operator check krta h ki iske ander element present h ki nhi, chahe array ho ya object
+
+                    
                 }
+            }
+        },
+        {
+            $project: {     //project se hmm select kr skte h ki ham user ko kya dikhana chahte h
+                fullName: 1,
+                username: 1,
+                subscribersCount: 1,
+                channelsSubscribedToCount: 1,
+                isSubscribed: 1,
+                avatar: 1,
+                coverImage : 1,
+                email: 1
             }
         }
     ]) 
+    //todo : console.log(channel)
+    if(!channel?.length){
+        throw new ApiError(404, "Channel does not exist")
+    }
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,channel[0],"User channel fetched sucessfully")
+    )
 })
 
-export {registerUser,
+export {
+    registerUser,
     loginUser,
     logOutUser,
     refreshTokenAgain,
@@ -390,4 +421,5 @@ export {registerUser,
     updateAccountDetail,
     updateCoverImage,
     updateAvatar,
-    getUserChannelProfile}
+    getUserChannelProfile
+}
